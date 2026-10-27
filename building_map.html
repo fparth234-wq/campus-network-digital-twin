@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Building Network & Digital Twin Map</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9; }
+        h1 { text-align: center; color: #333; }
+        .mermaid-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 1200px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+    <h1>Single Physical Building Network & Digital Twin Architecture</h1>
+    
+    <div class="mermaid-container">
+        <pre class="mermaid">
+        flowchart TB
+            %% Styling
+            classDef physical fill:#e1f5fe,stroke:#01579b,stroke-width:2px,color:#000
+            classDef virtual fill:#f3e5f5,stroke:#4a148c,stroke-width:2px,color:#000
+            classDef ai fill:#fff3e0,stroke:#e65100,stroke-width:2px,color:#000
+            classDef sdn fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px,color:#000
+
+            subgraph PhysicalBuilding [?? 1 Physical Building]
+                direction TB
+                
+                subgraph ServerRoom [Basement: Main Server Room]
+                    Core1[Core Switch 1]:::physical
+                    Core2[Core Switch 2]:::physical
+                    Core1 --- Core2
+                end
+
+                subgraph Floor1 [Floor 1: Admin & Distribution]
+                    Dist1[Distribution Switch 1]:::physical
+                    Dist2[Distribution Switch 2]:::physical
+                    Core1 --- Dist1
+                    Core2 --- Dist2
+                end
+
+                subgraph Floor2 [Floor 2: Classrooms Access Layer]
+                    Acc1[Access Switch 1]:::physical
+                    AP1((Wi-Fi AP)):::physical
+                    IoT1[[Smart Thermostat]]:::physical
+                    Dist1 --- Acc1
+                    Acc1 --- AP1
+                    Acc1 --- IoT1
+                end
+
+                subgraph Floor3 [Floor 3: Labs Access Layer]
+                    Acc2[Access Switch 2]:::physical
+                    PC1[Lab Workstations]:::physical
+                    Dist2 --- Acc2
+                    Acc2 --- PC1
+                end
+            end
+
+            subgraph DigitalTwin [?? Digital Twin Ecosystem]
+                direction TB
+                
+                L1[Layer 1: Telemetry Ingestion]:::virtual
+                L2[(Layer 2: Neo4j Graph Twin)]:::virtual
+                L3{{Layer 3: AI Predictive Core}}:::ai
+                L4[Layer 4: SDN Controller]:::sdn
+                Sandbox[Validation Sandbox]:::virtual
+
+                L1 == JSON-LD ==> L2
+                L2 == Graph Topology & Metrics ==> L3
+                L3 == "Predicts Congestion" ==> Sandbox
+                Sandbox == "Validation Passed" ==> L4
+            end
+
+            %% Connections between Physical and Virtual
+            Acc1 -. "SNMP / NetFlow" .-> L1
+            Acc2 -. "SNMP / NetFlow" .-> L1
+            Core1 -. "sFlow / CPU Metrics" .-> L1
+            
+            %% Remediation Action
+            L4 -. "OpenFlow Reroute" .-> Dist1
+            L4 -. "Isolate Port" .-> Acc1
+        </pre>
+    </div>
+
+    <!-- Load Mermaid from CDN -->
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>

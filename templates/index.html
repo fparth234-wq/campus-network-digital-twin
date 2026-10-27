@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Management Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Cytoscape & Layout -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js"></script>
+    <script src="https://unpkg.com/layout-base/layout-base.js"></script>
+    <script src="https://unpkg.com/cose-base/cose-base.js"></script>
+    <script src="https://unpkg.com/cytoscape-fcose/cytoscape-fcose.js"></script>
+    <!-- Chart.js for Telemetry Inspection -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { 
+            background-color: #f8f9fa; 
+            color: #212529; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            overflow-x: hidden; 
+        }
+        
+        .sidebar { 
+            background-color: #ffffff; 
+            border-right: 1px solid #e9ecef; 
+            height: 100vh; 
+            overflow-y: auto; 
+            padding: 22px; 
+        }
+        
+        .stat-card { 
+            background: #ffffff; 
+            border: 1px solid #dee2e6; 
+            border-radius: 8px; 
+            padding: 12px; 
+            text-align: center; 
+        }
+        .stat-val { font-size: 1.6rem; font-weight: 600; color: #212529; }
+        .stat-label { font-size: 0.8rem; color: #6c757d; font-weight: 500; }
+        
+        .section-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .control-panel-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 20px;
+        }
+
+        #cy { 
+            height: 68vh; 
+            width: 100%; 
+            background-color: #ffffff; 
+            border-radius: 8px; 
+            border: 1px solid #dee2e6; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            cursor: pointer;
+        }
+        
+        .alert-card { 
+            background: #ffffff; 
+            border: 1px solid #dee2e6; 
+            border-left: 4px solid #dc3545; 
+            border-radius: 6px; 
+            padding: 14px; 
+            margin-bottom: 12px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        .alert-card:hover {
+            transform: translateY(-2px);
+        }
+        .alert-title { color: #dc3545; font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
+        .alert-loc { font-size: 0.82rem; color: #495057; margin-bottom: 6px; font-weight: 500; }
+        .alert-desc { font-size: 0.85rem; color: #6c757d; margin-bottom: 10px; }
+        .alert-fix { 
+            font-size: 0.82rem; 
+            color: #055160; 
+            background: #cff4fc; 
+            padding: 8px 10px; 
+            border-radius: 4px; 
+            margin-bottom: 12px; 
+        }
+        
+        .btn-fix { 
+            background: #0d6efd; 
+            color: white; 
+            border: none; 
+            width: 100%; 
+            padding: 7px; 
+            border-radius: 4px; 
+            font-weight: 500; 
+            font-size: 0.85rem; 
+            transition: 0.2s; 
+        }
+        .btn-fix:hover { background: #0b5ed7; }
+        
+        .activity-log { 
+            background: #ffffff; 
+            color: #495057; 
+            font-size: 0.82rem; 
+            padding: 12px; 
+            height: 18vh; 
+            overflow-y: auto; 
+            border-radius: 8px; 
+            border: 1px solid #dee2e6; 
+        }
+        .log-entry { margin-bottom: 3px; border-bottom: 1px solid #f8f9fa; padding-bottom: 3px; }
+        .log-time { color: #adb5bd; margin-right: 8px; font-size: 0.75rem; }
+
+        /* Offcanvas Telemetry Drawer Styling */
+        .offcanvas-custom {
+            width: 440px !important;
+            background-color: #ffffff;
+            border-left: 1px solid #dee2e6;
+        }
+        .chart-box {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+        .chart-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Left Sidebar -->
+            <div class="col-md-4 sidebar">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="m-0 text-dark font-weight-bold">Network Operations</h5>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">Digital Twin Active</span>
+                </div>
+                
+                <!-- Stat Cards -->
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="stat-card">
+                            <div class="stat-val" id="stat-nodes">30</div>
+                            <div class="stat-label">Total Nodes</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="stat-card">
+                            <div class="stat-val text-danger" id="stat-faults">-</div>
+                            <div class="stat-label">Issues Detected</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulation Control Panel -->
+                <div class="section-title">Fault Simulation Panel</div>
+                <div class="control-panel-card">
+                    <div class="mb-2">
+                        <label for="inject-node-select" class="form-label" style="font-size: 0.8rem; font-weight: 500;">Target Node:</label>
+                        <select class="form-select form-select-sm" id="inject-node-select"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="inject-fault-select" class="form-label" style="font-size: 0.8rem; font-weight: 500;">Failure Condition:</label>
+                        <select class="form-select form-select-sm" id="inject-fault-select">
+                            <option value="1">Uplink Congestion (High Load/Queue)</option>
+                            <option value="2">Hardware Degradation (CRC Errors/Drops)</option>
+                            <option value="3">Broadcast Storm (Infinite STP Loop)</option>
+                        </select>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-danger flex-grow-1" onclick="injectSelectedFault()">Simulate Fault</button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="resetNetworkState()">Reset All</button>
+                    </div>
+                </div>
+
+                <!-- Issues Detected List -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="section-title m-0">Predicted Issues</div>
+                    <small class="text-muted" style="font-size: 0.75rem;">AI Continuous Scan</small>
+                </div>
+                <div id="alerts-container" class="mt-2">
+                    <div class="text-muted text-center mt-4">Loading topology data...</div>
+                </div>
+            </div>
+
+            <!-- Right Main Canvas -->
+            <div class="col-md-8 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h5 class="m-0 text-dark">Hospital Campus Topology Map</h5>
+                    <small class="text-muted">Tip: Click on any node circle to inspect live telemetry charts.</small>
+                </div>
+                
+                <div id="cy" class="mb-3"></div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-dark m-0">Autonomous Controller Activity Log</h6>
+                    <small class="text-muted">SDN OpenFlow Triggers</small>
+                </div>
+                <div class="activity-log" id="terminal">
+                    <div class="log-entry"><span class="log-time">System</span> Dashboard initialized. Listening to telemetry stream...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Node Telemetry Inspection Drawer (Bootstrap Offcanvas) -->
+    <div class="offcanvas offcanvas-end offcanvas-custom" tabindex="-1" id="nodeDrawer" aria-labelledby="nodeDrawerLabel">
+        <div class="offcanvas-header border-bottom">
+            <div>
+                <h5 class="offcanvas-title font-weight-bold" id="nodeDrawerLabel">Node Telemetry</h5>
+                <small class="text-muted" id="drawerNodeSubtitle">Loading...</small>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <!-- Metadata summary -->
+            <div class="mb-3 p-3 bg-light rounded border">
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted" style="font-size: 0.85rem;">Location:</span>
+                    <strong style="font-size: 0.85rem;" id="drawerLocation">-</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-1">
+                    <span class="text-muted" style="font-size: 0.85rem;">Health Status:</span>
+                    <span id="drawerStatusBadge" class="badge bg-success">Nominal</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="text-muted" style="font-size: 0.85rem;">Connected Peers:</span>
+                    <span style="font-size: 0.85rem;" id="drawerNeighbors">-</span>
+                </div>
+            </div>
+
+            <!-- Remediation Action if Faulty -->
+            <div id="drawerRemediateBox" class="mb-3 d-none">
+                <div class="alert alert-danger py-2 mb-2" style="font-size: 0.85rem;" id="drawerFixText"></div>
+                <button class="btn btn-sm btn-primary w-100" id="drawerFixBtn">Apply Autonomous SDN Fix</button>
+            </div>
+
+            <!-- Chart 1: Bandwidth & Queue Depth -->
+            <div class="chart-box">
+                <div class="chart-title">Bandwidth Utilization & Queue Depth (%)</div>
+                <canvas id="chartUtil" height="150"></canvas>
+            </div>
+
+            <!-- Chart 2: Packet Drops & Errors -->
+            <div class="chart-box">
+                <div class="chart-title">Packet Drop Rate (pps) & Errors</div>
+                <canvas id="chartDrops" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let cy;
+        let chartUtilInstance = null;
+        let chartDropsInstance = null;
+        const nodeDrawerElement = document.getElementById('nodeDrawer');
+        const nodeDrawer = new bootstrap.Offcanvas(nodeDrawerElement);
+
+        // Populate node dropdown (Nodes 0 to 29)
+        function initNodeSelect() {
+            const select = document.getElementById('inject-node-select');
+            select.innerHTML = '';
+            for (let i = 0; i < 30; i++) {
+                let role = i < 2 ? "Core" : (i < 8 ? "Dist" : "Access");
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.text = `Node ${i} (${role})`;
+                select.appendChild(opt);
+            }
+        }
+        initNodeSelect();
+
+        function logActivity(msg) {
+            const term = document.getElementById('terminal');
+            const time = new Date().toLocaleTimeString();
+            term.innerHTML += `<div class="log-entry"><span class="log-time">${time}</span> ${msg}</div>`;
+            term.scrollTop = term.scrollHeight;
+        }
+
+        function executeFix(nodeId) {
+            logActivity(`Applying SDN remediation policy to Node ${nodeId}...`);
+            
+            fetch('/api/remediate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ node_id: nodeId })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    logActivity(data.message);
+                    fetchNetworkState();
+                    // If the drawer is currently inspecting this node, refresh drawer
+                    openNodeDrawer(nodeId);
+                }
+            });
+        }
+
+        function injectSelectedFault() {
+            const nodeId = document.getElementById('inject-node-select').value;
+            const faultType = document.getElementById('inject-fault-select').value;
+
+            fetch('/api/inject_fault', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ node_id: nodeId, fault_type: faultType })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    logActivity(`[TEST INJECTION] ${data.message}`);
+                    fetchNetworkState();
+                    openNodeDrawer(nodeId);
+                }
+            });
+        }
+
+        function resetNetworkState() {
+            fetch('/api/reset_network', { method: 'POST' })
+            .then(r => r.json())
+            .then(data => {
+                logActivity("[SYSTEM] Network reset to baseline state.");
+                fetchNetworkState();
+            });
+        }
+
+        // Open inspection drawer for any clicked node
+        function openNodeDrawer(nodeId) {
+            fetch(`/api/node_metrics/${nodeId}`)
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('nodeDrawerLabel').innerText = `Node ${data.node_id} Telemetry`;
+                document.getElementById('drawerNodeSubtitle').innerText = `${data.role} • ${data.location}`;
+                document.getElementById('drawerLocation').innerText = data.location;
+                document.getElementById('drawerNeighbors').innerText = data.neighbors.map(n => `Node ${n}`).join(', ') || 'None';
+                
+                const statusBadge = document.getElementById('drawerStatusBadge');
+                const remediateBox = document.getElementById('drawerRemediateBox');
+                const fixText = document.getElementById('drawerFixText');
+                const fixBtn = document.getElementById('drawerFixBtn');
+
+                if (data.is_faulty) {
+                    statusBadge.className = 'badge bg-danger';
+                    statusBadge.innerText = data.status;
+                    remediateBox.classList.remove('d-none');
+                    fixText.innerText = data.suggested_fix || 'Remediation required.';
+                    fixBtn.onclick = () => executeFix(data.node_id);
+                } else {
+                    statusBadge.className = 'badge bg-success';
+                    statusBadge.innerText = 'Nominal (Healthy)';
+                    remediateBox.classList.add('d-none');
+                }
+
+                // Render Chart 1: Utilization & Queue Depth
+                renderUtilChart(data.time_labels, data.utilization, data.queue_depth);
+                // Render Chart 2: Drop Rate & Errors
+                renderDropsChart(data.time_labels, data.drop_rate, data.errors);
+
+                nodeDrawer.show();
+            });
+        }
+
+        function renderUtilChart(labels, utilData, queueData) {
+            const ctx = document.getElementById('chartUtil').getContext('2d');
+            if (chartUtilInstance) {
+                chartUtilInstance.destroy();
+            }
+            chartUtilInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Bandwidth Load (%)',
+                            data: utilData,
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.08)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Queue Depth (%)',
+                            data: queueData,
+                            borderColor: '#fd7e14',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [4, 4],
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { font: { size: 10 } } },
+                        x: { ticks: { font: { size: 10 } } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                    }
+                }
+            });
+        }
+
+        function renderDropsChart(labels, dropData, errorData) {
+            const ctx = document.getElementById('chartDrops').getContext('2d');
+            if (chartDropsInstance) {
+                chartDropsInstance.destroy();
+            }
+            chartDropsInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Drop Rate (pps)',
+                            data: dropData,
+                            backgroundColor: '#dc3545',
+                            borderRadius: 3
+                        },
+                        {
+                            label: 'CRC Errors',
+                            data: errorData,
+                            backgroundColor: '#6c757d',
+                            borderRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+                        x: { ticks: { font: { size: 10 } } }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+                    }
+                }
+            });
+        }
+
+        function renderAlerts(faults) {
+            const container = document.getElementById('alerts-container');
+            if(faults.length === 0) {
+                container.innerHTML = `<div class="p-3 text-center text-success bg-success-subtle rounded border border-success-subtle mt-2" style="font-size: 0.85rem;">All 30 nodes operating within nominal thresholds.</div>`;
+                return;
+            }
+
+            let html = '';
+            faults.forEach(f => {
+                html += `
+                <div class="alert-card" onclick="openNodeDrawer(${f.node_id})">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div class="alert-title">${f.fault}</div>
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Node ${f.node_id}</span>
+                    </div>
+                    <div class="alert-loc">${f.location} &bull; ${f.role}</div>
+                    <div class="alert-desc">${f.description}</div>
+                    <div class="alert-fix">${f.suggested_fix}</div>
+                    <button class="btn-fix" onclick="event.stopPropagation(); executeFix(${f.node_id})">Apply Fix</button>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function initGraph(nodes, edges) {
+            cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: { nodes: nodes, edges: edges },
+                style: [
+                    {
+                        selector: 'node[^is_ward]',
+                        style: {
+                            'background-color': 'data(color)',
+                            'border-width': 1,
+                            'border-color': 'data(border)',
+                            'label': 'data(label)',
+                            'color': '#495057',
+                            'font-size': '10px',
+                            'text-valign': 'bottom',
+                            'text-margin-y': 4,
+                            'width': '22px',
+                            'height': '22px',
+                            'text-wrap': 'wrap'
+                        }
+                    },
+                    {
+                        selector: 'node[is_ward]',
+                        style: {
+                            'background-color': '#f8f9fa',
+                            'background-opacity': 0.8,
+                            'border-width': 1,
+                            'border-color': '#dee2e6',
+                            'label': 'data(label)',
+                            'color': '#6c757d',
+                            'font-size': '12px',
+                            'font-weight': '600',
+                            'text-valign': 'top',
+                            'text-halign': 'center',
+                            'text-margin-y': -8,
+                            'padding': 20
+                        }
+                    },
+                    {
+                        selector: 'edge',
+                        style: {
+                            'width': 1.5,
+                            'line-color': '#ced4da',
+                            'curve-style': 'bezier'
+                        }
+                    }
+                ],
+                layout: {
+                    name: 'fcose',
+                    quality: 'proof',
+                    randomize: true,
+                    animate: false,
+                    padding: 30,
+                    nodeRepulsion: 300000,
+                    idealEdgeLength: 100,
+                    edgeElasticity: 0.5,
+                    nestingFactor: 1.2,
+                    gravity: 0.25,
+                    numIter: 2500
+                }
+            });
+
+            // Tap event: Click any non-compound node to open telemetry drawer
+            cy.on('tap', 'node[^is_ward]', function(evt) {
+                const node = evt.target;
+                openNodeDrawer(parseInt(node.id()));
+            });
+        }
+
+        function updateGraph(nodes) {
+            nodes.forEach(n => {
+                if(!n.data.is_ward) {
+                    let cyNode = cy.getElementById(n.data.id);
+                    if(cyNode) {
+                        cyNode.data('color', n.data.color);
+                        cyNode.data('border', n.data.border);
+                        cyNode.data('label', n.data.label);
+                    }
+                }
+            });
+        }
+
+        function fetchNetworkState() {
+            fetch('/api/network_state')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('stat-nodes').innerText = data.metrics.total_nodes;
+                    document.getElementById('stat-faults').innerText = data.metrics.active_faults;
+                    
+                    renderAlerts(data.faults);
+
+                    if(!cy) {
+                        initGraph(data.nodes, data.edges);
+                        logActivity("Topology data loaded successfully.");
+                    } else {
+                        updateGraph(data.nodes);
+                    }
+                });
+        }
+
+        setInterval(fetchNetworkState, 4000);
+        fetchNetworkState();
+    </script>
+</body>
+</html>
