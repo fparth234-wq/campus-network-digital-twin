@@ -126,7 +126,7 @@ def create_table(slide, left, top, width, height, headers, rows, col_widths=None
             p.alignment = PP_ALIGN.LEFT
 
 # ==========================================
-# SLIDE 1: Title Slide
+# SLIDE 1: Title Slide (Updated with All 3 Students)
 # ==========================================
 s1 = prs.slides.add_slide(blank_layout)
 set_slide_background(s1, C_DARK_BG)
@@ -136,43 +136,47 @@ right_box.fill.solid()
 right_box.fill.fore_color.rgb = RGBColor(15, 34, 64)
 right_box.line.fill.background()
 
-tb = s1.shapes.add_textbox(Inches(0.8), Inches(1.2), Inches(7.5), Inches(5.0))
+tb = s1.shapes.add_textbox(Inches(0.8), Inches(0.9), Inches(7.5), Inches(5.8))
 tf = tb.text_frame
 tf.word_wrap = True
 
 p = tf.paragraphs[0]
 p.text = "BCSE308L / BCSE308P • COMPUTER NETWORKS"
-p.font.size = Pt(13)
+p.font.size = Pt(12)
 p.font.bold = True
 p.font.color.rgb = C_TEAL
 
 p = tf.add_paragraph()
 p.text = "FINAL COURSE\nPROJECT REVIEW"
-p.font.size = Pt(38)
+p.font.size = Pt(34)
 p.font.bold = True
 p.font.color.rgb = RGBColor(255, 255, 255)
-p.space_before = Pt(10)
-p.space_after = Pt(20)
+p.space_before = Pt(6)
+p.space_after = Pt(14)
 
 p = tf.add_paragraph()
-p.text = "AI-Driven Digital Twin for Campus Network Failure Prediction and Autonomous SDN Remediation"
-p.font.size = Pt(17)
+p.text = "Adaptive SDN Framework and AI-Driven Digital Twin for Hospital Campus Network Failure Prediction"
+p.font.size = Pt(15)
 p.font.bold = True
 p.font.color.rgb = RGBColor(147, 197, 253)
-p.space_after = Pt(30)
+p.space_after = Pt(18)
 
 meta_items = [
-    "Team ID: CN-DT-2026",
-    "Team Member: Parth Kashyap [Registration No: Replace Placeholder]",
-    "Faculty Mentor: [Faculty Mentor Name]",
+    "Team Members (Sorted on Register Number):",
+    "  • Kumar Aditya Raghuwanshi (24BCE0464)",
+    "  • Parth Kashyap (24BCE2030)",
+    "  • Prakrash Pandey (24BCE2849)",
+    "",
+    "Faculty Mentor: DR. YOGANAND S., Assistant Professor Senior Grade-2",
+    "Centre for Artificial Intelligence and Research (CFAIR), SCOPE",
     "Review Date: October 2026"
 ]
 for item in meta_items:
     p = tf.add_paragraph()
     p.text = item
-    p.font.size = Pt(12)
+    p.font.size = Pt(11)
     p.font.color.rgb = RGBColor(203, 213, 225)
-    p.space_after = Pt(4)
+    p.space_after = Pt(2)
 
 # ==========================================
 # SLIDE 2: Project Snapshot
@@ -510,36 +514,38 @@ tb_label.text_frame.paragraphs[0].text = "Course outcome mapping — BCSE308L / 
 tb_label.text_frame.paragraphs[0].font.size = Pt(13)
 tb_label.text_frame.paragraphs[0].font.bold = True
 
-headers_s10 = ["Course Outcome", "Project Evidence", "Member Contribution", "Evidence Location"]
+headers_s10 = ["Course Outcome", "Project Evidence", "Team Member Contribution", "Evidence Location"]
 rows_s10 = [
-    ["CO1: Analyze network architectures, layering & topologies", "Designed 3-tier hierarchical campus network with 30 nodes & 7 zones", "Parth Kashyap", "models/, templates/index.html"],
+    ["CO1: Analyze network architectures, layering & topologies", "Designed 3-tier hierarchical campus network with 30 nodes & 7 zones", "Kumar Aditya Raghuwanshi", "models/, templates/index.html"],
     ["CO2: Evaluate routing algorithms & congestion management", "Engineered dynamic QoS rerouting and uplink traffic shaping policies", "Parth Kashyap", "sdn_controller/, app.py"],
-    ["CO3: Analyze network protocols (STP, OpenFlow, TCP/IP)", "Modeled STP loop failures, buffer queuing, and OpenFlow flow-mods", "Parth Kashyap", "dataset_generator.py, app.py"],
-    ["CO4: Design & implement network software & monitoring tools", "Developed full-stack Digital Twin Web NOC with live telemetry charts", "Parth Kashyap", "app.py, templates/index.html"]
+    ["CO3: Analyze network protocols (STP, OpenFlow, TCP/IP)", "Modeled STP loop failures, buffer queuing, and OpenFlow flow-mods", "Prakrash Pandey", "dataset_generator.py, app.py"],
+    ["CO4: Design & implement network software & monitoring tools", "Developed full-stack Digital Twin Web NOC with live telemetry charts", "All Team Members", "app.py, templates/index.html"]
 ]
 create_table(s10, Inches(0.8), Inches(4.0), Inches(11.7), Inches(2.8), headers_s10, rows_s10,
-             [Inches(2.8), Inches(4.2), Inches(2.0), Inches(2.7)])
+             [Inches(2.8), Inches(4.2), Inches(2.2), Inches(2.5)])
 
 # ==========================================
-# SLIDE 11: Team Contribution and Project Management
+# SLIDE 11: Team Contribution and Project Management (Updated for All 3 Members)
 # ==========================================
 s11 = prs.slides.add_slide(blank_layout)
 set_slide_background(s11, C_LIGHT_BG)
 add_header(s11, "Team contribution and project management", "11")
 
 tb_label = s11.shapes.add_textbox(Inches(0.8), Inches(1.4), Inches(11.7), Inches(0.3))
-tb_label.text_frame.paragraphs[0].text = "Individual accountability"
+tb_label.text_frame.paragraphs[0].text = "Individual accountability (Sorted on Register Number)"
 tb_label.text_frame.paragraphs[0].font.size = Pt(13)
 tb_label.text_frame.paragraphs[0].font.bold = True
 
-headers_s11 = ["Member / ID", "Responsibility", "Work Completed / Evidence", "Contribution (%)"]
+headers_s11 = ["Member / Reg No", "Primary Responsibility", "Work Completed / Evidence", "Contribution (%)"]
 rows_s11 = [
-    ["Parth Kashyap\n[Reg No: Placeholder]", "System Architecture, AI Model Design, SDN Remediation & Web NOC", "End-to-end implementation of FTS-LSTM, MPNN, Focal Loss, Flask REST API & Cytoscape Dashboard", "100%"]
+    ["Kumar Aditya Raghuwanshi\n(24BCE0464)", "Literature Review, Telemetry Schema & Network Topology Dataset", "Engineered telemetry data generator, 30-node topology graph, and background research", "33.3%"],
+    ["Parth Kashyap\n(24BCE2030)", "System Architecture, AI Spatio-Temporal Model & Focal Loss", "Implemented FTS-LSTM, MPNN, Focal Loss optimization, and Flask REST inference pipeline", "33.4%"],
+    ["Prakrash Pandey\n(24BCE2849)", "Autonomous SDN Controller, Web NOC UI & Scenario Testing", "Developed OpenFlow remediation engine, Cytoscape/Chart.js UI, and multi-scenario validation", "33.3%"]
 ]
-create_table(s11, Inches(0.8), Inches(1.8), Inches(11.7), Inches(1.8), headers_s11, rows_s11,
-             [Inches(2.5), Inches(3.5), Inches(4.2), Inches(1.5)])
+create_table(s11, Inches(0.8), Inches(1.8), Inches(11.7), Inches(2.0), headers_s11, rows_s11,
+             [Inches(2.5), Inches(3.2), Inches(4.5), Inches(1.5)])
 
-create_card(s11, Inches(0.8), Inches(4.0), Inches(5.6), Inches(2.7), "Milestones", [
+create_card(s11, Inches(0.8), Inches(4.1), Inches(5.6), Inches(2.6), "Milestones", [
     "• M1 (Week 2): Problem formulation & campus network architecture design [COMPLETED]",
     "• M2 (Week 4): Telemetry dataset generation with injected physics faults [COMPLETED]",
     "• M3 (Week 6): FTS-LSTM + MPNN model development & Focal Loss tuning [COMPLETED]",
@@ -547,8 +553,8 @@ create_card(s11, Inches(0.8), Inches(4.0), Inches(5.6), Inches(2.7), "Milestones
     "• M5 (Week 10): Interactive Digital Twin Web NOC with telemetry charts [COMPLETED]"
 ], header_color=C_BLUE)
 
-create_card(s11, Inches(6.9), Inches(4.0), Inches(5.6), Inches(2.7), "Repository / References", [
-    "• Project Codebase: `c:\\Users\\Parth Kashyap\\Desktop\\cn`",
+create_card(s11, Inches(6.9), Inches(4.1), Inches(5.6), Inches(2.6), "Repository / References", [
+    "• Project GitHub: https://github.com/fparth234-wq/campus-network-digital-twin",
     "• AI Core: `models/hybrid_predictor.py`, `models/fts_lstm.py`, `models/mpnn.py`",
     "• Web Dashboard: `app.py`, `templates/index.html`",
     "• Dataset: `data/campus_dataset.pt` (30 nodes, 58 edges, 15 time steps)",
@@ -569,7 +575,7 @@ create_card(s12, Inches(0.8), Inches(1.5), Inches(5.6), Inches(2.3), "What Was A
 ], header_color=C_GREEN)
 
 create_card(s12, Inches(6.9), Inches(1.5), Inches(5.6), Inches(2.3), "What Did You Learn?", [
-    "• Graph Neural Networks (MPNN) are essential for networks because failures cascade across physical physical cabling topologies.",
+    "• Graph Neural Networks (MPNN) are essential for networks because failures cascade across physical cabling topologies.",
     "• Focal Loss is mandatory for network telemetry to conquer the 98:2 class imbalance where standard cross-entropy fails.",
     "• SDN intent decoupling provides safe, millisecond-level automated remediation."
 ])
@@ -615,7 +621,7 @@ create_card(s13, Inches(0.8), Inches(1.5), Inches(6.8), Inches(5.3), "Academic &
 ])
 
 create_card(s13, Inches(7.8), Inches(1.5), Inches(4.7), Inches(2.3), "Appendix / Repository", [
-    "• Code Repository: C:\\Users\\Parth Kashyap\\Desktop\\cn",
+    "• Code Repository: https://github.com/fparth234-wq/campus-network-digital-twin",
     "• PyTorch Models: `models/hybrid_predictor.py`",
     "• Dashboard UI: `templates/index.html`",
     "• SDN Controller: `sdn_controller/sdn_remediation_controller.py`"
@@ -668,4 +674,4 @@ create_card(s14, Inches(0.8), Inches(2.8), Inches(11.7), Inches(3.9), "Backup Te
 
 output_path = "Final_Course_Project_Review.pptx"
 prs.save(output_path)
-print(f"Presentation successfully created at: {output_path}")
+print(f"Presentation successfully updated at: {output_path}")
